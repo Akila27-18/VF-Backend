@@ -108,7 +108,7 @@ REST_FRAMEWORK = {
 # -------------------------------
 FRONTEND_URL = os.getenv(
     "FRONTEND_URL",
-    "https://vetri-finance-frontendfolder-5pib.vercel.app"
+    "https://vf-frontendnew.vercel.app/"
 ).rstrip("/")
 
 CORS_ALLOWED_ORIGINS = [
@@ -117,6 +117,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:3000",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+    "https://vf-frontendnew.vercel.app/"
 ]
 
 CORS_ALLOW_CREDENTIALS = True
