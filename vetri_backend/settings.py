@@ -2,22 +2,24 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 
-# Load .env file (local development)
+# Load .env file
 load_dotenv()
 
 # Build paths
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# -------------------------------
 # SECURITY
+# -------------------------------
 SECRET_KEY = os.getenv("DJANGO_SECRET", "dev-fallback-secret-change-in-production")
-
-# Debug mode – automatically False in production if env var not set
 DEBUG = os.getenv("DJANGO_DEBUG", "False") == "True"
+# ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "*").split(",")
+ALLOWED_HOSTS = ['*']
 
-# Allowed hosts – tighten in production
-ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "*").split(",")
 
-# Application definition
+# -------------------------------
+# APPLICATIONS
+# -------------------------------
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -37,7 +39,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',  # MUST be first
+    'corsheaders.middleware.CorsMiddleware',  # must be first
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -68,33 +70,46 @@ TEMPLATES = [
 WSGI_APPLICATION = 'vetri_backend.wsgi.application'
 ASGI_APPLICATION = 'vetri_backend.asgi.application'
 
-# Database (SQLite for dev, use PostgreSQL in production)
+# -------------------------------
+# DATABASE (MySQL)
+# -------------------------------
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'vetri_db',     # replace with your DB name
+        'USER': 'root',                    # MySQL username
+        'PASSWORD': '1234',  # <-- this must match MySQL
+        'HOST': '127.0.0.1',              # or 'localhost'
+        'PORT': '3306',
     }
 }
 
-# Channels (WebSocket) – in-memory for dev, switch to Redis in prod
+
+# -------------------------------
+# CHANNELS
+# -------------------------------
 CHANNEL_LAYERS = {
     "default": {
-        "BACKEND": "channels.layers.InMemoryChannelLayer"
+        "BACKEND": "channels.layers.InMemoryChannelLayer"  # Use Redis in prod
     }
 }
 
-# DRF settings
+# -------------------------------
+# REST FRAMEWORK
+# -------------------------------
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.SessionAuthentication',
     ),
 }
 
-# CORS SETTINGS – SECURE & WORKS WITH YOUR VERCEL FRONTEND
+# -------------------------------
+# CORS SETTINGS
+# -------------------------------
 FRONTEND_URL = os.getenv(
     "FRONTEND_URL",
-    "https://vetri-finance-frontendfolder.vercel.app"
-).rstrip("/")  # remove trailing slash if present
+    "https://vetri-finance-frontendfolder-5pib.vercel.app"
+).rstrip("/")
 
 CORS_ALLOWED_ORIGINS = [
     FRONTEND_URL,
@@ -104,14 +119,16 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:5173",
 ]
 
-CORS_ALLOW_CREDENTIALS = True  # needed for cookies / session auth
-
-# CSRF Trusted Origins – must match frontend domain with scheme and no trailing slash
+CORS_ALLOW_CREDENTIALS = True
 CSRF_TRUSTED_ORIGINS = [origin for origin in CORS_ALLOWED_ORIGINS if origin.startswith("http")]
 
-# Static files
+# -------------------------------
+# STATIC FILES
+# -------------------------------
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# Default primary key field type
+# -------------------------------
+# DEFAULT PRIMARY KEY
+# -------------------------------
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
