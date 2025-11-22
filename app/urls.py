@@ -2,6 +2,7 @@ from django.urls import path, include
 from rest_framework import routers
 from .views import ExpenseViewSet, SharedBudgetViewSet, ChatMessageViewSet, news_list
 from .views_auth import login_view
+from .views import signup, login
 
 router = routers.DefaultRouter()
 router.register(r'expenses', ExpenseViewSet)
@@ -12,4 +13,6 @@ urlpatterns = [
     path('', include(router.urls)),
     path('news/', news_list),
     path('auth/login/', login_view),  # ✅ add this
+    path('auth/signup', signup),
+    path('auth/login', login),
 ]
