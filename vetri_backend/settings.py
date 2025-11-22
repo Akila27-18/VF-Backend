@@ -2,23 +2,35 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 
+# -------------------------------
 # Load .env file
+# -------------------------------
 load_dotenv()
 
+# -------------------------------
 # Base directory
+# -------------------------------
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # -------------------------------
 # SECURITY
 # -------------------------------
-SECRET_KEY = os.getenv("DJANGO_SECRET", "dev-fallback-secret-change-in-production")
+SECRET_KEY = os.getenv(
+    "DJANGO_SECRET",
+    "dev-fallback-secret-change-in-production"
+)
 DEBUG = os.getenv("DJANGO_DEBUG", "False") == "True"
-ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
+
+ALLOWED_HOSTS = os.getenv(
+    "DJANGO_ALLOWED_HOSTS",
+    "127.0.0.1,localhost"
+).split(",")
 
 # -------------------------------
 # APPLICATIONS
 # -------------------------------
 INSTALLED_APPS = [
+    # Default Django apps
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -26,7 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    # Third-party
+    # Third-party apps
     'rest_framework',
     'corsheaders',
     'channels',
@@ -110,9 +122,12 @@ REST_FRAMEWORK = {
 }
 
 # -------------------------------
-# CORS SETTINGS
+# CORS & CSRF
 # -------------------------------
-FRONTEND_URL = os.getenv("FRONTEND_URL", "https://vf-frontendnew.vercel.app","https://vf-frontend.onrender.com").rstrip("/")
+# FRONTEND URL from .env or fallback
+FRONTEND_URL = os.getenv("FRONTEND_URL") or "https://vf-frontendnew.vercel.app"
+FRONTEND_URL = FRONTEND_URL.rstrip("/")
+
 CORS_ALLOWED_ORIGINS = [
     FRONTEND_URL,
     "http://localhost:3000",
@@ -120,8 +135,9 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "https://vf-frontendnew.vercel.app",
-    "https://vf-frontend.onrender.com"
+    "https://vf-frontend.onrender.com",
 ]
+
 CORS_ALLOW_CREDENTIALS = True
 CSRF_TRUSTED_ORIGINS = [origin for origin in CORS_ALLOWED_ORIGINS if origin.startswith("http")]
 
