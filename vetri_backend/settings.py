@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 # Load .env file
 load_dotenv()
 
-# Build paths
+# Base directory
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # -------------------------------
@@ -13,9 +13,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # -------------------------------
 SECRET_KEY = os.getenv("DJANGO_SECRET", "dev-fallback-secret-change-in-production")
 DEBUG = os.getenv("DJANGO_DEBUG", "False") == "True"
-# ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "*").split(",")
-ALLOWED_HOSTS = ['*']
-
+ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "*").split(",") if os.getenv("DJANGO_ALLOWED_HOSTS") else ["*"]
 
 # -------------------------------
 # APPLICATIONS
@@ -38,6 +36,9 @@ INSTALLED_APPS = [
     'chat',
 ]
 
+# -------------------------------
+# MIDDLEWARE
+# -------------------------------
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',  # must be first
     'django.middleware.security.SecurityMiddleware',
@@ -49,12 +50,15 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+# -------------------------------
+# URL & Templates
+# -------------------------------
 ROOT_URLCONF = 'vetri_backend.urls'
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [],  # Add template dirs if needed
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -76,21 +80,20 @@ ASGI_APPLICATION = 'vetri_backend.asgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'vetri_db',     # replace with your DB name
-        'USER': 'root',                    # MySQL username
-        'PASSWORD': '1234',  # <-- this must match MySQL
-        'HOST': '127.0.0.1',              # or 'localhost'
-        'PORT': '3306',
+        'NAME': os.getenv("MYSQL_DATABASE", "vetri_db"),
+        'USER': os.getenv("MYSQL_USER", "root"),
+        'PASSWORD': os.getenv("MYSQL_PASSWORD", "1234"),
+        'HOST': os.getenv("MYSQL_HOST", "127.0.0.1"),
+        'PORT': os.getenv("MYSQL_PORT", "3306"),
     }
 }
-
 
 # -------------------------------
 # CHANNELS
 # -------------------------------
 CHANNEL_LAYERS = {
     "default": {
-        "BACKEND": "channels.layers.InMemoryChannelLayer"  # Use Redis in prod
+        "BACKEND": "channels.layers.InMemoryChannelLayer",  # Use Redis in production
     }
 }
 
@@ -101,25 +104,23 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.SessionAuthentication',
     ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+    ),
 }
 
 # -------------------------------
 # CORS SETTINGS
 # -------------------------------
-FRONTEND_URL = os.getenv(
-    "FRONTEND_URL",
-    "https://vf-frontendnew.vercel.app/"
-).rstrip("/")
-
+FRONTEND_URL = os.getenv("FRONTEND_URL", "https://vf-frontendnew.vercel.app").rstrip("/")
 CORS_ALLOWED_ORIGINS = [
     FRONTEND_URL,
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
-    "https://vf-frontendnew.vercel.app/"
+    "https://vf-frontendnew.vercel.app",
 ]
-
 CORS_ALLOW_CREDENTIALS = True
 CSRF_TRUSTED_ORIGINS = [origin for origin in CORS_ALLOWED_ORIGINS if origin.startswith("http")]
 
