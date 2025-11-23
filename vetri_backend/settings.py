@@ -2,13 +2,11 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 
+# --------------------------------------------------
+# LOAD ENV
+# --------------------------------------------------
 load_dotenv()
-
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-# --------------------------------------------------
-# ENVIRONMENT
-# --------------------------------------------------
 ENV = os.getenv("ENV", "local")  # "local" or "production"
 
 # --------------------------------------------------
@@ -16,11 +14,10 @@ ENV = os.getenv("ENV", "local")  # "local" or "production"
 # --------------------------------------------------
 SECRET_KEY = os.getenv("DJANGO_SECRET", "dev-fallback-secret")
 DEBUG = os.getenv("DJANGO_DEBUG", "False").lower() in ["true", "1", "yes"]
-
 ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
 
 # --------------------------------------------------
-# APPLICATIONS
+# INSTALLED APPS
 # --------------------------------------------------
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -34,7 +31,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'channels',
-    
+
     'app',
     'chat',
 ]
@@ -81,7 +78,6 @@ ASGI_APPLICATION = "vetri_backend.asgi.application"
 # DATABASE
 # --------------------------------------------------
 if ENV == "production":
-    # Use SQLite for Render (easy setup)
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
@@ -89,7 +85,6 @@ if ENV == "production":
         }
     }
 else:
-    # Local development → MySQL
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.mysql",
@@ -129,26 +124,26 @@ REST_FRAMEWORK = {
 # --------------------------------------------------
 # CORS / CSRF
 # --------------------------------------------------
-# Multiple frontend URLs can be set as comma-separated in .env
 FRONTEND_URLS = os.getenv(
     "FRONTEND_URLS",
     "https://vf-frontendnew.vercel.app,https://vf-frontend.onrender.com"
 ).split(",")
-CORS_ALLOW_ALL_ORIGINS = True
-# CORS_ALLOWED_ORIGINS = [
-#     url.strip().rstrip("/") for url in FRONTEND_URLS
-# ] + [
-#     "http://localhost:3000",
-#     "http://127.0.0.1:3000",
-#     "http://localhost:5173",
-#     "http://127.0.0.1:5173",
-# ]
+FRONTEND_URLS = [url.strip().rstrip("/") for url in FRONTEND_URLS]
 
-CORS_ALLOW_CREDENTIALS = True
-
-CSRF_TRUSTED_ORIGINS = [
-    origin for origin in CORS_ALLOWED_ORIGINS if origin.startswith("http")
-]
+if ENV == "local":
+    CORS_ALLOW_ALL_ORIGINS = True
+    CORS_ALLOW_CREDENTIALS = True
+    CSRF_TRUSTED_ORIGINS = [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ]
+else:
+    CORS_ALLOW_ALL_ORIGINS = False
+    CORS_ALLOWED_ORIGINS = FRONTEND_URLS
+    CORS_ALLOW_CREDENTIALS = True
+    CSRF_TRUSTED_ORIGINS = FRONTEND_URLS
 
 # --------------------------------------------------
 # EMAIL SETTINGS
