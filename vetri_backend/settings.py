@@ -130,6 +130,7 @@ FRONTEND_URLS = os.getenv(
 ).split(",")
 FRONTEND_URLS = [url.strip().rstrip("/") for url in FRONTEND_URLS]
 
+# Local development
 if ENV == "local":
     CORS_ALLOW_ALL_ORIGINS = True
     CORS_ALLOW_CREDENTIALS = True
@@ -138,13 +139,18 @@ if ENV == "local":
         "http://127.0.0.1:3000",
         "http://localhost:5173",
         "http://127.0.0.1:5173",
-    
     ]
+# Production
 else:
     CORS_ALLOW_ALL_ORIGINS = False
     CORS_ALLOWED_ORIGINS = FRONTEND_URLS
     CORS_ALLOW_CREDENTIALS = True
     CSRF_TRUSTED_ORIGINS = FRONTEND_URLS
+
+# --------------------------------------------------
+# Trailing slash fix
+# --------------------------------------------------
+APPEND_SLASH = True  # automatically redirect /auth/login → /auth/login/
 
 # --------------------------------------------------
 # EMAIL SETTINGS
