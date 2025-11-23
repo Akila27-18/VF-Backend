@@ -131,7 +131,7 @@ REST_FRAMEWORK = {
 # --------------------------------------------------
 # CORS / CSRF
 # --------------------------------------------------
-FRONTEND_URL = os.getenv("FRONTEND_URL", "https://vf-frontendnew.vercel.app", "https://vf-frontend.onrender.com")
+FRONTEND_URL = os.getenv("FRONTEND_URL", "https://vf-frontend.onrender.com")
 
 CORS_ALLOWED_ORIGINS = [
     FRONTEND_URL.rstrip("/"),
@@ -140,7 +140,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "https://vf-frontend.onrender.com",
-    "https://vf-frontendnew.vercel.app",
+  
 ]
 
 CORS_ALLOW_CREDENTIALS = True
