@@ -35,7 +35,6 @@ INSTALLED_APPS = [
     'corsheaders',
     'channels',
     
-
     'app',
     'chat',
 ]
@@ -45,9 +44,9 @@ INSTALLED_APPS = [
 # --------------------------------------------------
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
+    "django.middleware.common.CommonMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
-    "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
@@ -135,15 +134,15 @@ FRONTEND_URLS = os.getenv(
     "FRONTEND_URLS",
     "https://vf-frontendnew.vercel.app,https://vf-frontend.onrender.com"
 ).split(",")
-
-CORS_ALLOWED_ORIGINS = [
-    url.strip().rstrip("/") for url in FRONTEND_URLS
-] + [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-]
+CORS_ALLOW_ALL_ORIGINS = True
+# CORS_ALLOWED_ORIGINS = [
+#     url.strip().rstrip("/") for url in FRONTEND_URLS
+# ] + [
+#     "http://localhost:3000",
+#     "http://127.0.0.1:3000",
+#     "http://localhost:5173",
+#     "http://127.0.0.1:5173",
+# ]
 
 CORS_ALLOW_CREDENTIALS = True
 
