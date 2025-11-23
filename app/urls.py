@@ -4,6 +4,7 @@ from .views import ExpenseViewSet, SharedBudgetViewSet, ChatMessageViewSet, news
 from .views_auth import signup, login_view, password_reset
 from rest_framework_simplejwt.views import TokenRefreshView
 
+
 router = routers.DefaultRouter()
 router.register(r'expenses', ExpenseViewSet)
 router.register(r'budgets', SharedBudgetViewSet)

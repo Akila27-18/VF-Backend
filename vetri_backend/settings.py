@@ -9,18 +9,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # --------------------------------------------------
 # ENVIRONMENT
 # --------------------------------------------------
-ENV = os.getenv("ENV", "local")   # local OR production
+ENV = os.getenv("ENV", "local")  # "local" or "production"
 
 # --------------------------------------------------
 # SECURITY
 # --------------------------------------------------
 SECRET_KEY = os.getenv("DJANGO_SECRET", "dev-fallback-secret")
-DEBUG = os.getenv("DJANGO_DEBUG", "False") == "True"
+DEBUG = os.getenv("DJANGO_DEBUG", "False").lower() in ["true", "1", "yes"]
 
-ALLOWED_HOSTS = os.getenv(
-    "DJANGO_ALLOWED_HOSTS",
-    "localhost,127.0.0.1"
-).split(",")
+ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
 
 # --------------------------------------------------
 # APPLICATIONS
@@ -41,7 +38,6 @@ INSTALLED_APPS = [
     'app',
     'chat',
 ]
-
 
 # --------------------------------------------------
 # MIDDLEWARE
@@ -82,10 +78,10 @@ WSGI_APPLICATION = "vetri_backend.wsgi.application"
 ASGI_APPLICATION = "vetri_backend.asgi.application"
 
 # --------------------------------------------------
-# DATABASE (Switch: MySQL local → SQLite production)
+# DATABASE
 # --------------------------------------------------
 if ENV == "production":
-    # Render deployment → use SQLite
+    # Use SQLite for Render (easy setup)
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
@@ -110,7 +106,10 @@ else:
 # --------------------------------------------------
 CHANNEL_LAYERS = {
     "default": {
-        "BACKEND": "channels.layers.InMemoryChannelLayer"
+        "BACKEND": "channels.layers.InMemoryChannelLayer" if ENV != "production" else "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [os.getenv("REDIS_URL", "redis://localhost:6379/0")],
+        } if ENV == "production" else {},
     }
 }
 
@@ -127,20 +126,22 @@ REST_FRAMEWORK = {
     ),
 }
 
-
 # --------------------------------------------------
 # CORS / CSRF
 # --------------------------------------------------
-FRONTEND_URL = os.getenv("FRONTEND_URL", "https://vf-frontend.onrender.com")
+# Multiple frontend URLs can be set as comma-separated in .env
+FRONTEND_URLS = os.getenv(
+    "FRONTEND_URLS",
+    "https://vf-frontendnew.vercel.app,https://vf-frontend.onrender.com"
+).split(",")
 
 CORS_ALLOWED_ORIGINS = [
-    FRONTEND_URL.rstrip("/"),
+    url.strip().rstrip("/") for url in FRONTEND_URLS
+] + [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
-    "https://vf-frontend.onrender.com",
-  
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -148,15 +149,17 @@ CORS_ALLOW_CREDENTIALS = True
 CSRF_TRUSTED_ORIGINS = [
     origin for origin in CORS_ALLOWED_ORIGINS if origin.startswith("http")
 ]
-# settings.py
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# --------------------------------------------------
+# EMAIL SETTINGS
+# --------------------------------------------------
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend' if ENV == "production" else 'django.core.mail.backends.console.EmailBackend'
 EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
 EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))
-EMAIL_HOST_USER = os.getenv('EMAIL_USER', 'akila271819@gmail.com')
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_PASSWORD', 'ngyj hove cjsc penw')
+EMAIL_HOST_USER = os.getenv('EMAIL_USER', '')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_PASSWORD', '')
 EMAIL_USE_TLS = True
-DEFAULT_FROM_EMAIL = 'akila271819@gmail.com'
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 # --------------------------------------------------
 # STATIC FILES
