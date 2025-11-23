@@ -126,7 +126,7 @@ REST_FRAMEWORK = {
 # --------------------------------------------------
 FRONTEND_URLS = os.getenv(
     "FRONTEND_URLS",
-    "https://vf-frontendnew.vercel.app,https://vf-frontend.onrender.com"
+    "https://vf-frontend.onrender.com"
 ).split(",")
 FRONTEND_URLS = [url.strip().rstrip("/") for url in FRONTEND_URLS]
 
@@ -138,6 +138,7 @@ if ENV == "local":
         "http://127.0.0.1:3000",
         "http://localhost:5173",
         "http://127.0.0.1:5173",
+    
     ]
 else:
     CORS_ALLOW_ALL_ORIGINS = False
