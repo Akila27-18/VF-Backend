@@ -24,10 +24,11 @@ def signup_view(request):
 
     refresh = RefreshToken.for_user(user)
     return JsonResponse({
-        'token': str(refresh.access_token),
-        'refresh': str(refresh),
-        'email': email
-    })
+    'access': str(refresh.access_token),
+    'refresh': str(refresh),
+    'email': email
+})
+
 
 
 @api_view(['POST'])
@@ -43,10 +44,11 @@ def login_view(request):
 
     refresh = RefreshToken.for_user(user)
     return JsonResponse({
-        'token': str(refresh.access_token),
-        'refresh': str(refresh),
-        'email': email
-    })
+    'access': str(refresh.access_token),
+    'refresh': str(refresh),
+    'email': email
+})
+
 
 
 @api_view(['POST'])
