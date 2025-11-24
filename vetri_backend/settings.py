@@ -1,6 +1,10 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+from datetime import timedelta
+
+
+
 
 # --------------------------------------------------
 # LOAD ENV
@@ -107,7 +111,11 @@ CHANNEL_LAYERS = {
         } if ENV == "production" else {},
     }
 }
-
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(hours=1),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "AUTH_HEADER_TYPES": ("Bearer",),
+}
 # --------------------------------------------------
 # REST FRAMEWORK + JWT
 # --------------------------------------------------
