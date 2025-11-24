@@ -2,10 +2,12 @@
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
 from django.http import JsonResponse
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
 
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def signup_view(request):
     data = request.data
     email = data.get('email')
@@ -29,6 +31,7 @@ def signup_view(request):
 
 
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def login_view(request):
     data = request.data
     email = data.get('email')
@@ -47,10 +50,10 @@ def login_view(request):
 
 
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def password_reset_view(request):
-    # Simple placeholder: Implement email sending logic here
     email = request.data.get('email')
     if not email:
         return JsonResponse({'error': 'Email required'}, status=400)
-    # You can integrate Django's password reset later
+    # Integrate Django’s password reset later
     return JsonResponse({'message': f'Password reset link sent to {email}'})

@@ -31,29 +31,29 @@ def news_list(request):
         {'id':2,'title':'Interest rate update', 'summary':'RBI keeps repo rate unchanged...'}
     ]
     return Response(data)
-from django.contrib.auth.models import User
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from rest_framework import status
-from django.contrib.auth import authenticate
-from rest_framework_simplejwt.tokens import RefreshToken
+# from django.contrib.auth.models import User
+# from rest_framework.decorators import api_view
+# from rest_framework.response import Response
+# from rest_framework import status
+# from django.contrib.auth import authenticate
+# from rest_framework_simplejwt.tokens import RefreshToken
 
-@api_view(['POST'])
-def signup(request):
-    data = request.data
-    if User.objects.filter(username=data['email']).exists():
-        return Response({"error": "Email already exists"}, status=400)
+# @api_view(['POST'])
+# def signup(request):
+#     data = request.data
+#     if User.objects.filter(username=data['email']).exists():
+#         return Response({"error": "Email already exists"}, status=400)
     
-    user = User.objects.create_user(username=data['email'], email=data['email'], password=data['password'], first_name=data.get('name',''))
-    user.save()
-    return Response({"message": "User created"}, status=201)
+#     user = User.objects.create_user(username=data['email'], email=data['email'], password=data['password'], first_name=data.get('name',''))
+#     user.save()
+#     return Response({"message": "User created"}, status=201)
 
 
-@api_view(['POST'])
-def login(request):
-    data = request.data
-    user = authenticate(username=data['email'], password=data['password'])
-    if user:
-        refresh = RefreshToken.for_user(user)
-        return Response({"token": str(refresh.access_token)})
-    return Response({"error": "Invalid credentials"}, status=401)
+# @api_view(['POST'])
+# def login(request):
+#     data = request.data
+#     user = authenticate(username=data['email'], password=data['password'])
+#     if user:
+#         refresh = RefreshToken.for_user(user)
+#         return Response({"token": str(refresh.access_token)})
+#     return Response({"error": "Invalid credentials"}, status=401)
