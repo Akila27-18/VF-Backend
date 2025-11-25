@@ -7,7 +7,10 @@ from app.routing import websocket_urlpatterns
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'vetri_backend.settings')
 
 application = ProtocolTypeRouter({
+    # Must handle HTTP for Django REST Framework
     "http": get_asgi_application(),
+
+    # WebSockets
     "websocket": AuthMiddlewareStack(
         URLRouter(websocket_urlpatterns)
     ),
