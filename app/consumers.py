@@ -83,10 +83,14 @@ import json
 class DashboardConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         await self.accept()
-        await self.send(json.dumps({"message": "Dashboard WS connected"}))
+        await self.send(json.dumps({
+            "status": "connected",
+            "message": "Dashboard WebSocket connected"
+        }))
 
     async def disconnect(self, close_code):
         pass
 
     async def receive(self, text_data=None, bytes_data=None):
+        # Echo message back
         await self.send(text_data)
