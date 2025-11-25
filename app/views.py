@@ -33,3 +33,24 @@ class ChatMessageViewSet(viewsets.ModelViewSet):
         user = self.request.user
         # Messages sent or received by the user
         return ChatMessage.objects.filter(sender=user) | ChatMessage.objects.filter(receiver=user)
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from datetime import datetime
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def news_api(request):
+    news = [
+        {
+            "id": 1,
+            "title": "Markets stable",
+            "summary": f"Equity markets saw gains at {datetime.now().strftime('%H:%M:%S')}"
+        },
+        {
+            "id": 2,
+            "title": "Interest rate update",
+            "summary": f"RBI keeps repo rate unchanged at {datetime.now().strftime('%H:%M:%S')}"
+        }
+    ]
+    return Response(news)
