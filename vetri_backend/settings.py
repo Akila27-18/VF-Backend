@@ -97,6 +97,13 @@ CHANNEL_LAYERS = {
 }
 
 # -------------------------------
+# AUTH BACKENDS
+# -------------------------------
+AUTHENTICATION_BACKENDS = [
+    "django.contrib.auth.backends.ModelBackend",
+]
+
+# -------------------------------
 # REST FRAMEWORK + JWT
 # -------------------------------
 SIMPLE_JWT = {
