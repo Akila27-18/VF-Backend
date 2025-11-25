@@ -1,3 +1,4 @@
+# app/views_auth.py
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
 from django.http import JsonResponse
@@ -28,9 +29,10 @@ def signup_view(request):
 
     refresh = RefreshToken.for_user(user)
     return JsonResponse({
+        'id': user.id,
+        'email': email,
         'access': str(refresh.access_token),
         'refresh': str(refresh),
-        'email': email
     })
 
 
@@ -53,9 +55,10 @@ def login_view(request):
 
     refresh = RefreshToken.for_user(user)
     return JsonResponse({
+        'id': user.id,
+        'email': email,
         'access': str(refresh.access_token),
         'refresh': str(refresh),
-        'email': email
     })
 
 
