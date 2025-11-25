@@ -77,3 +77,16 @@ class NewsConsumer(AsyncWebsocketConsumer):
         except asyncio.CancelledError: pass
     async def send_json(self, content):
         await self.send(text_data=json.dumps(content))
+from channels.generic.websocket import AsyncWebsocketConsumer
+import json
+
+class DashboardConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        await self.accept()
+        await self.send(json.dumps({"message": "Dashboard WS connected"}))
+
+    async def disconnect(self, close_code):
+        pass
+
+    async def receive(self, text_data=None, bytes_data=None):
+        await self.send(text_data)

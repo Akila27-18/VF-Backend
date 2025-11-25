@@ -15,7 +15,7 @@ ENV = os.getenv("ENV", "production")  # can keep for toggling other configs
 # -------------------------------
 SECRET_KEY = os.getenv("DJANGO_SECRET", "dev-fallback-secret")
 DEBUG = True
-ALLOWED_HOSTS = ['*']
+# ALLOWED_HOSTS = ['*']
 
 # -------------------------------
 # INSTALLED APPS
@@ -125,13 +125,16 @@ REST_FRAMEWORK = {
 # -------------------------------
 # CORS / CSRF
 # -------------------------------
-FRONTEND_URLS = os.getenv("FRONTEND_URLS", "https://vf-frontend.onrender.com").split(",")
-FRONTEND_URLS = [url.strip().rstrip("/") for url in FRONTEND_URLS]
+CORS_ALLOW_ALL_ORIGINS = True
 
-CORS_ALLOW_ALL_ORIGINS = False
-CORS_ALLOWED_ORIGINS = FRONTEND_URLS
-CORS_ALLOW_CREDENTIALS = True
-CSRF_TRUSTED_ORIGINS = FRONTEND_URLS
+CSRF_TRUSTED_ORIGINS = [
+    "https://vf-backend-1.onrender.com",
+    "https://vf-frontend.onrender.com",
+]
+
+ALLOWED_HOSTS = ["*"]
+CORS_ALLOW_HEADERS = ['*']
+
 
 APPEND_SLASH = True
 
