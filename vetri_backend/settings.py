@@ -14,8 +14,8 @@ ENV = os.getenv("ENV", "production")  # can keep for toggling other configs
 # SECURITY
 # -------------------------------
 SECRET_KEY = os.getenv("DJANGO_SECRET", "dev-fallback-secret")
-DEBUG = os.getenv("DJANGO_DEBUG", "False").lower() in ["true", "1", "yes"]
-ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "").split(",")
+DEBUG = True
+ALLOWED_HOSTS = ['*']
 
 # -------------------------------
 # INSTALLED APPS
