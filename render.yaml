@@ -1,0 +1,46 @@
+services:
+  - type: web
+    name: vf-backend
+    env: python
+    runtime: python3
+    plan: free
+
+    # Start command using Daphne (required for WebSockets)
+    startCommand: |
+      python manage.py migrate &&
+      python manage.py collectstatic --noinput &&
+      daphne -b 0.0.0.0 -p $PORT vetri_backend.asgi:application
+
+    buildCommand: |
+      pip install -r requirements.txt
+
+    # Environment variables, including Redis
+    envVars:
+      - key: DJANGO_SECRET
+        generateValue: true
+
+      - key: ENV
+        value: production
+
+      - key: REDIS_URL
+        fromService:
+          name: vf-redis
+          property: connectionString
+
+      - key: PYTHON_VERSION
+        value: 3.12
+
+      # Optional Email
+      - key: EMAIL_USER
+        sync: false
+      - key: EMAIL_PASSWORD
+        sync: false
+
+    # Static files
+    staticPublishPath: staticfiles
+
+# Redis for Channels
+  - type: redis
+    name: vf-redis
+    plan: free
+    maxmemoryPolicy: allkeys-lru

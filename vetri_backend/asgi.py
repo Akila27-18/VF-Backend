@@ -1,16 +1,20 @@
+# vetri_backend/asgi.py
+
 import os
-from django.core.asgi import get_asgi_application
+import django
 from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.auth import AuthMiddlewareStack
+from django.core.asgi import get_asgi_application
 from app.routing import websocket_urlpatterns
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'vetri_backend.settings')
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "vetri_backend.settings")
+
+# IMPORTANT: Init Django before Channels loads routes
+django.setup()
 
 application = ProtocolTypeRouter({
-    # Must handle HTTP for Django REST Framework
     "http": get_asgi_application(),
 
-    # WebSockets
     "websocket": AuthMiddlewareStack(
         URLRouter(websocket_urlpatterns)
     ),

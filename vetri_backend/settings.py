@@ -1,42 +1,49 @@
+# vetri_backend/settings.py
+
 import os
 from pathlib import Path
 from dotenv import load_dotenv
 from datetime import timedelta
 
-# -------------------------------
-# LOAD ENV
-# -------------------------------
 load_dotenv()
+
 BASE_DIR = Path(__file__).resolve().parent.parent
-ENV = os.getenv("ENV", "production")  # can keep for toggling other configs
+ENV = os.getenv("ENV", "production")
 
 # -------------------------------
 # SECURITY
 # -------------------------------
 SECRET_KEY = os.getenv("DJANGO_SECRET", "dev-fallback-secret")
-DEBUG = True
-# ALLOWED_HOSTS = ['*']
+DEBUG = ENV != "production"
+
+ALLOWED_HOSTS = [
+    "*",
+    "vf-backend.onrender.com",
+    "localhost",
+    "127.0.0.1",
+]
 
 # -------------------------------
 # INSTALLED APPS
 # -------------------------------
 INSTALLED_APPS = [
-    # Django apps
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'django_extensions',
+    # Django
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
 
     # Third-party
-    'rest_framework',
-    'corsheaders',
-    'channels',
+    "rest_framework",
+    "corsheaders",
+    "channels",
+    "django_extensions",
+    "rest_framework_simplejwt",
 
-    # Local apps
-    'app',
+    # Local
+    "app",
 ]
 
 # -------------------------------
@@ -54,9 +61,12 @@ MIDDLEWARE = [
 ]
 
 # -------------------------------
-# URLS / TEMPLATES / WSGI / ASGI
+# URLS / ASGI / WSGI
 # -------------------------------
 ROOT_URLCONF = "vetri_backend.urls"
+
+WSGI_APPLICATION = "vetri_backend.wsgi.application"
+ASGI_APPLICATION = "vetri_backend.asgi.application"
 
 TEMPLATES = [
     {
@@ -74,11 +84,8 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "vetri_backend.wsgi.application"
-ASGI_APPLICATION = "vetri_backend.asgi.application"
-
 # -------------------------------
-# DATABASE (SQLite3 only)
+# DATABASE (SQLite)
 # -------------------------------
 DATABASES = {
     "default": {
@@ -88,23 +95,29 @@ DATABASES = {
 }
 
 # -------------------------------
-# CHANNELS
+# CHANNELS LAYER (REQUIRED for WebSockets)
 # -------------------------------
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels.layers.InMemoryChannelLayer",
+REDIS_URL = os.getenv("REDIS_URL")  # Render Redis
+
+if REDIS_URL:
+    CHANNEL_LAYERS = {
+        "default": {
+            "BACKEND": "channels_redis.core.RedisChannelLayer",
+            "CONFIG": {
+                "hosts": [REDIS_URL],
+            },
+        }
     }
-}
+else:
+    # Local fallback
+    CHANNEL_LAYERS = {
+        "default": {
+            "BACKEND": "channels.layers.InMemoryChannelLayer",
+        }
+    }
 
 # -------------------------------
-# AUTH BACKENDS
-# -------------------------------
-AUTHENTICATION_BACKENDS = [
-    "django.contrib.auth.backends.ModelBackend",
-]
-
-# -------------------------------
-# REST FRAMEWORK + JWT
+# REST + JWT
 # -------------------------------
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(hours=1),
@@ -113,13 +126,13 @@ SIMPLE_JWT = {
 }
 
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
-    ),
-    'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
-    ),
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
+    ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticatedOrReadOnly",
+    ],
 }
 
 # -------------------------------
@@ -128,24 +141,22 @@ REST_FRAMEWORK = {
 CORS_ALLOW_ALL_ORIGINS = True
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://vf-backend-1.onrender.com",
+    "https://vf-backend.onrender.com",
     "https://vf-frontend.onrender.com",
+    "http://localhost:5173",
 ]
 
-ALLOWED_HOSTS = ["*"]
-CORS_ALLOW_HEADERS = ['*']
-
-
-APPEND_SLASH = True
+CORS_ALLOW_HEADERS = ["*"]
 
 # -------------------------------
 # EMAIL SETTINGS
 # -------------------------------
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
-EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))
-EMAIL_HOST_USER = os.getenv("EMAIL_USER", "akila271819@gmail.com")
-EMAIL_HOST_PASSWORD = os.getenv("EMAIL_PASSWORD", "ngyj hove cjsc penw")
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
+EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.gmail.com")
+EMAIL_PORT = int(os.getenv("EMAIL_PORT", 587))
+EMAIL_HOST_USER = os.getenv("EMAIL_USER", "")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_PASSWORD", "")
 EMAIL_USE_TLS = True
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
@@ -156,13 +167,11 @@ STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # -------------------------------
-# TIMEZONE / LOCALE
+# TIMEZONE & DEFAULTS
 # -------------------------------
 TIME_ZONE = "Asia/Kolkata"
 USE_TZ = True
 LANGUAGE_CODE = "en-us"
 
-# -------------------------------
-# DEFAULT PRIMARY KEY FIELD
-# -------------------------------
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+APPEND_SLASH = True
