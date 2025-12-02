@@ -119,6 +119,8 @@ CORS_ALLOW_ALL_ORIGINS = True  # OK for dev, NOT for prod
 # ==========================
 # 📁 STATIC FILES
 # ==========================
-STATIC_URL = "/static/"
+# Absolute path where static files will be collected
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
