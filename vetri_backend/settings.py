@@ -1,22 +1,24 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+from datetime import timedelta
+import dj_database_url
 
 load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# ==========================
-# 🔐 SECURITY
-# ==========================
-SECRET_KEY = os.getenv("DJANGO_SECRET", "dev-secret")
-DEBUG = True
-ALLOWED_HOSTS = ["*"]
+
+# ======================= SECURITY ========================
+
+SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret")
+DEBUG = os.getenv("DEBUG", "False").lower() == "true"
+
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",")
 
 
-# ==========================
-# 📦 INSTALLED APPS
-# ==========================
+# ======================= APPS ============================
+
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -24,23 +26,25 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "whitenoise.runserver_nostatic",
 
-    # Third-party
+
     "rest_framework",
+    "rest_framework_simplejwt",
     "corsheaders",
-    "channels",           # ✅ REQUIRED for WebSockets
+    "channels",
 
-    # Local apps
     "app",
     "chat",
 ]
 
 
-# ==========================
-# 🔧 MIDDLEWARE
-# ==========================
+# ======================= MIDDLEWARE ======================
+
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
+    "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -51,9 +55,8 @@ MIDDLEWARE = [
 ]
 
 
-# ==========================
-# 🌐 URL / TEMPLATE
-# ==========================
+# ======================= URL & TEMPLATES =================
+
 ROOT_URLCONF = "vetri_backend.urls"
 
 TEMPLATES = [
@@ -74,25 +77,22 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "vetri_backend.wsgi.application"
+ASGI_APPLICATION = "vetri_backend.asgi.application"
 
 
-# ==========================
-# 🗄 DATABASE
-# ==========================
+# ======================= DATABASE =========================
+
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
+    "default": dj_database_url.config(
+        default=os.getenv("DATABASE_URL"),
+        conn_max_age=600,
+        ssl_require=True,
+    )
 }
 
 
-# ==========================
-# ⚡ ASGI / CHANNELS
-# ==========================
-ASGI_APPLICATION = "vetri_backend.asgi.application"   # ✅ FIXED
+# ======================= CHANNELS =========================
 
-# In-memory channel layer for development
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels.layers.InMemoryChannelLayer",
@@ -100,27 +100,33 @@ CHANNEL_LAYERS = {
 }
 
 
-# ==========================
-# 🔐 REST FRAMEWORK
-# ==========================
+# ======================= JWT ==============================
+
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
-        "rest_framework.authentication.SessionAuthentication",
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
 }
 
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "AUTH_HEADER_TYPES": ("Bearer",),
+}
 
-# ==========================
-# 🌍 CORS
-# ==========================
-CORS_ALLOW_ALL_ORIGINS = True  # OK for dev, NOT for prod
+
+# ======================= CORS / CSRF =======================
+
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS", "").split(",")
+CSRF_TRUSTED_ORIGINS = os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",")
 
 
-# ==========================
-# 📁 STATIC FILES
-# ==========================
-# Absolute path where static files will be collected
-STATIC_URL = '/static/'
+# ======================= STATIC ===========================
+
+STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

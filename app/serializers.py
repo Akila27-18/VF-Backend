@@ -1,6 +1,5 @@
 from rest_framework import serializers
-from .models import Expense, SharedBudget, ChatMessage
-from django.contrib.auth.models import User
+from .models import Expense, SharedBudget, ChatMessage, User  # import your custom User
 
 class ExpenseSerializer(serializers.ModelSerializer):
     class Meta:
@@ -19,5 +18,6 @@ class SharedBudgetSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
-        model = User
-        fields = ['id','username','email']
+        model = User  # use your custom User
+        fields = ['id', 'username', 'password']  # add password if needed
+        extra_kwargs = {'password': {'write_only': True}}  # don't expose password in GET responses

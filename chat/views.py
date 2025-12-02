@@ -1,12 +1,19 @@
 # backend/chat/views.py
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
+from django.http import JsonResponse
 from .models import ChatMessage
-from .serializers import ChatMessageSerializer
 
-@api_view(['GET'])
 def recent_messages(request):
-    limit = int(request.GET.get('limit', 100))
-    msgs = ChatMessage.objects.order_by('created_at').all()[:limit]
-    serializer = ChatMessageSerializer(msgs, many=True)
-    return Response({"ok": True, "data": serializer.data})
+    messages = ChatMessage.objects.order_by('-created_at')[:50]  # latest 50 messages
+    data = [
+        {
+            "id": msg.id,
+            "from_user": msg.from_user,
+            "text": msg.text,
+            "time": msg.time,
+            "created_at": msg.created_at.isoformat(),
+            "delivered": msg.delivered,
+            "seen": msg.seen
+        }
+        for msg in reversed(messages)  # oldest first
+    ]
+    return JsonResponse(data, safe=False)

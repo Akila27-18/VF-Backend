@@ -1,71 +1,88 @@
 # backend/chat/consumers.py
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
+from django.contrib.auth import get_user_model
 from .models import ChatMessage
-from django.utils import timezone
 
-def now_time():
-    return timezone.localtime().strftime("%I:%M %p")
+User = get_user_model()
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.room_group_name = "global_chat_room"
-        # join group
+
+        # Join group
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
         await self.accept()
-        # optional: send status
+
+        # Optional: notify client
         await self.send_json({"type": "status", "data": {"message": "connected"}})
 
     async def disconnect(self, close_code):
+        # Leave group
         await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
 
     async def receive(self, text_data=None, bytes_data=None):
+        if text_data is None:
+            return
+
         try:
             payload = json.loads(text_data)
         except Exception:
             return
 
-        # expect { type: "message"|"typing"|"mark_seen", payload: {...} }
         typ = payload.get("type")
         pl = payload.get("payload", {})
 
-        if typ == "message":
-            from_user = pl.get("from", "Anonymous")
-            text = pl.get("text", "")
-            time_str = pl.get("time") or now_time()
+        user = self.scope["user"]
+        if not user.is_authenticated:
+            await self.send_json({"type": "error", "data": "Authentication required"})
+            return
 
-            # persist message
-            msg = ChatMessage.objects.create(from_user=from_user, text=text, time=time_str)
+        if typ == "message":
+            text = pl.get("text", "")
+
+            # Save message
+            msg = ChatMessage.objects.create(sender=user, text=text)
 
             out = {
                 "type": "message",
                 "data": {
-                    "id": str(msg.id),
-                    "from_user": msg.from_user,
+                    "id": msg.id,
+                    "from_user": user.username,
                     "text": msg.text,
-                    "time": msg.time,
                     "created_at": msg.created_at.isoformat(),
-                },
+                }
             }
-            # broadcast to group
-            await self.channel_layer.group_send(self.room_group_name, {"type": "chat.message", "message": out})
 
-            # ack back to sender (optional)
-            await self.send_json({"type": "ack", "data": {"id": str(msg.id)}})
+            # Broadcast to group
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {"type": "chat.message", "message": out}
+            )
+
+            # Optional ack to sender
+            await self.send_json({"type": "ack", "data": {"id": msg.id}})
 
         elif typ == "typing":
-            from_user = pl.get("from", "Someone")
-            await self.channel_layer.group_send(self.room_group_name, {"type": "chat.typing", "message": {"from": from_user}})
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    "type": "chat.typing",
+                    "message": {"from_user": user.username}
+                }
+            )
 
         elif typ == "mark_seen":
             ids = pl.get("ids", [])
             if ids:
                 ChatMessage.objects.filter(id__in=ids).update(seen=True)
-                await self.channel_layer.group_send(self.room_group_name, {"type": "chat.seen", "message": {"ids": ids}})
+                await self.channel_layer.group_send(
+                    self.room_group_name,
+                    {"type": "chat.seen", "message": {"ids": ids}}
+                )
 
-    # Called by group_send for message
+    # Handlers for group_send events
     async def chat_message(self, event):
-        # event['message'] is the full payload we created above
         await self.send(text_data=json.dumps(event["message"]))
 
     async def chat_typing(self, event):

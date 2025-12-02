@@ -1,0 +1,55 @@
+services:
+  - type: web
+    name: vetri-backend
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "gunicorn vetri_backend.wsgi:application"
+    autoDeploy: true
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: vetri-finance-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: CORS_ALLOWED_ORIGINS
+        value: "https://peaceful-gingersnap-de1052.netlify.app"
+      - key: CSRF_TRUSTED_ORIGINS
+        value: "https://peaceful-gingersnap-de1052.netlify.app"
+      - key: ALLOWED_HOSTS
+        value: "vetri-backend.onrender.com"
+
+  - type: web
+    name: vetri-websocket-server
+    env: node
+    plan: free
+    buildCommand: "npm install"
+    startCommand: "node server.js"
+    autoDeploy: true
+    envVars:
+      - key: PORT
+        value: "8001"
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DB_HOST
+        value: "dpg-d4nf3qali9vc73fi9830-a.oregon-postgres.render.com"
+      - key: DB_PORT
+        value: "5432"
+      - key: DB_USER
+        value: "vetri_finance_user"
+      - key: DB_PASSWORD
+        value: "wpbUiEr9mjB1EIgNOQI05XG2vEOqVFAE"
+      - key: DB_NAME
+        value: "vetri_finance"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: vetri-finance-db
+          property: connectionString
+
+databases:
+  - name: vetri-finance-db
+    region: oregon

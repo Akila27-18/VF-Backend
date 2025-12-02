@@ -31,3 +31,45 @@ def news_list(request):
         {'id':2,'title':'Interest rate update', 'summary':'RBI keeps repo rate unchanged...'}
     ]
     return Response(data)
+from rest_framework import status
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+from .models import User
+from .serializers import UserSerializer
+from django.contrib.auth.hashers import make_password, check_password
+import jwt
+from django.conf import settings
+
+JWT_SECRET = settings.SECRET_KEY
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def signup(request):
+    username = request.data.get('username')
+    password = request.data.get('password')
+
+    if User.objects.filter(username=username).exists():
+        return Response({'error': 'User already exists'}, status=status.HTTP_400_BAD_REQUEST)
+
+    user = User(username=username, password=make_password(password))
+    user.save()
+    token = jwt.encode({'id': user.id}, JWT_SECRET, algorithm='HS256')
+    return Response({'token': token, 'username': user.username})
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def login(request):
+    username = request.data.get('username')
+    password = request.data.get('password')
+
+    try:
+        user = User.objects.get(username=username)
+    except User.DoesNotExist:
+        return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    if not check_password(password, user.password):
+        return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    token = jwt.encode({'id': user.id}, JWT_SECRET, algorithm='HS256')
+    return Response({'token': token, 'username': user.username})
