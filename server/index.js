@@ -1,19 +1,26 @@
 import express from "express";
 import fetch from "node-fetch";
 import { WebSocketServer } from "ws";
+import cors from "cors";
+import http from "http";
 
+const PORT = process.env.PORT || 8000;
 const app = express();
-const PORT = 8000;
-const WS_PORT = 5000;
 
+app.use(cors());
 app.use(express.json());
 
-// Example REST endpoint for stock fetching
+// ===== HTTP + WebSocket Share Same Server (Render requirement) =====
+const server = http.createServer(app);
+const wss = new WebSocketServer({ server });
+
+// ===== REST API for stock =====
 app.get("/api/stock/:symbol", async (req, res) => {
   const symbol = req.params.symbol;
-  // Replace with real API logic or local mock
+
   const mockPrice = Math.random() * 500 + 100;
   const mockChange = Math.random() * 10 - 5;
+
   res.json({
     symbol,
     price: mockPrice,
@@ -23,29 +30,27 @@ app.get("/api/stock/:symbol", async (req, res) => {
   });
 });
 
-app.listen(PORT, () => console.log(`REST API running on port ${PORT}`));
-
-// WebSocket server for chat + stocks
-const wss = new WebSocketServer({ port: WS_PORT });
-console.log(`WebSocket server running on ws://localhost:${WS_PORT}`);
-
+// ===== WebSocket logic =====
 wss.on("connection", (ws) => {
-  console.log("Client connected");
+  console.log("WS client connected");
 
   ws.on("message", (msg) => {
     const data = JSON.parse(msg);
 
-    // Broadcast to all other clients
+    // Broadcast to all
     wss.clients.forEach((client) => {
-      if (client.readyState === 1) client.send(JSON.stringify(data));
+      if (client.readyState === 1) {
+        client.send(JSON.stringify(data));
+      }
     });
   });
 
-  ws.on("close", () => console.log("Client disconnected"));
+  ws.on("close", () => console.log("WS client disconnected"));
 });
 
-// Periodically broadcast stock updates
-const symbols = ["AAPL","TSLA","MSFT","BTC-USD","ETH-USD","RELIANCE.NS"];
+// ===== Periodic Stock Push =====
+const symbols = ["AAPL", "TSLA", "MSFT", "BTC-USD", "ETH-USD", "RELIANCE.NS"];
+
 setInterval(async () => {
   for (const sym of symbols) {
     const res = await fetch(`http://localhost:${PORT}/api/stock/${sym}`);
@@ -58,3 +63,8 @@ setInterval(async () => {
     });
   }
 }, 10000);
+
+// ===== Start Server =====
+server.listen(PORT, () => {
+  console.log(`Server + WS running on port ${PORT}`);
+});

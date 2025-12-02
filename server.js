@@ -1,20 +1,22 @@
-// backend/server.js
 import express from "express";
 import { WebSocketServer } from "ws";
 import http from "http";
 import cors from "cors";
 
 const app = express();
-const PORT = 5000;
+const PORT = process.env.PORT || 5000; // Use Render port
 
-app.use(cors());
+// CORS for frontend domain
+app.use(cors({
+  origin: "https://vf-frontend.onrender.com",
+  credentials: true
+}));
 app.use(express.json());
 
-// ---------------- Stock API (mock/Yahoo API example) ----------------
+// ---------------- Stock API (mock example) ----------------
 app.get("/api/stock/:symbol", async (req, res) => {
   const { symbol } = req.params;
 
-  // Replace with real stock fetching logic if needed
   const mockData = {
     chart: {
       result: [
@@ -34,13 +36,10 @@ app.get("/api/stock/:symbol", async (req, res) => {
 
 // ---------------- HTTP + WebSocket Server ----------------
 const server = http.createServer(app);
-
-// WebSocket server for chat
 const wss = new WebSocketServer({ server, path: "/ws/chat/" });
-console.log(`WebSocket server mounted on ws://localhost:${PORT}/ws/chat/`);
 
 wss.on("connection", (ws) => {
-  console.log("Client connected");
+  console.log("WS client connected");
 
   ws.on("message", (msg) => {
     let data;
@@ -51,7 +50,7 @@ wss.on("connection", (ws) => {
       return;
     }
 
-    // Broadcast to all clients except sender
+    // Broadcast to all except sender
     wss.clients.forEach((client) => {
       if (client !== ws && client.readyState === ws.OPEN) {
         client.send(JSON.stringify(data));
@@ -59,10 +58,10 @@ wss.on("connection", (ws) => {
     });
   });
 
-  ws.on("close", () => console.log("Client disconnected"));
+  ws.on("close", () => console.log("WS client disconnected"));
 });
 
-// ---------------- Start server ----------------
+// ---------------- Start Server ----------------
 server.listen(PORT, () => {
-  console.log(`Express API running on http://localhost:${PORT}`);
+  console.log(`Express + WS server running on port ${PORT}`);
 });
